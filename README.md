@@ -3,54 +3,90 @@
 
 <img src="examples/laneLines_thirdPass.jpg" width="480" alt="Combined Image" />
 
-Overview
----
 
-When we drive, we use our eyes to decide where to go.  The lines on the road that show us where the lanes are act as our constant reference for where to steer the vehicle.  Naturally, one of the first things we would like to do in developing a self-driving car is to automatically detect lane lines using an algorithm.
+### Reflection
 
-In this project you will detect lane lines in images using Python and OpenCV.  OpenCV means "Open-Source Computer Vision", which is a package that has many useful tools for analyzing images.  
+### 1. Describe your pipeline. As part of the description, explain how you modified the draw_lines() function.
 
-To complete the project, two files will be submitted: a file containing project code and a file containing a brief write up explaining your solution. We have included template files to be used both for the [code](https://github.com/udacity/CarND-LaneLines-P1/blob/master/P1.ipynb) and the [writeup](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md).The code file is called P1.ipynb and the writeup template is writeup_template.md 
+My pipeline consisted of 5 steps. First, I converted the images to grayscale, then I .... 
 
-To meet specifications in the project, take a look at the requirements in the [project rubric](https://review.udacity.com/#!/rubrics/322/view)
+In order to draw a single line on the left and right lanes, I modified the draw_lines() function by ...
 
+If you'd like to include images to show how the pipeline works, here is how to include an image: 
 
-Creating a Great Writeup
----
-For this project, a great writeup should provide a detailed response to the "Reflection" section of the [project rubric](https://review.udacity.com/#!/rubrics/322/view). There are three parts to the reflection:
+![alt text][image1]
 
-1. Describe the pipeline
+My pipeline consisted of 6 steps. 
 
-2. Identify any shortcomings
-
-3. Suggest possible improvements
-
-We encourage using images in your writeup to demonstrate how your pipeline works.  
-
-All that said, please be concise!  We're not looking for you to write a book here: just a brief description.
-
-You're not required to use markdown for your writeup.  If you use another method please just submit a pdf of your writeup. Here is a link to a [writeup template file](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md). 
+* Step 1: Convert Image to grayscale
+* Step 2: Smoothen Edges with Gaussian Blur
+* Step 3: Apply Canny edge detection on Smoothened Images
+* Step 4: Use Region Of Interest and discard all lines outside this region
+* Step 5: Perform a Hough Transform to find lanes within our region of interest and trace them in red
+* Step 6: Using hough lines from step 5 and draw lines on original image
 
 
-The Project
----
+**Step 1**: Convert Image to grayscale
 
-## If you have already installed the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) you should be good to go!   If not, you should install the starter kit to get started on this project. ##
+We then convert the images to Grayscale. We use the OpenCV's function cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 
-**Step 1:** Set up the [CarND Term1 Starter Kit](https://classroom.udacity.com/nanodegrees/nd013/parts/fbf77062-5703-404e-b60c-95b78b2f3f9e/modules/83ec35ee-1e02-48a5-bdb7-d244bd47c2dc/lessons/8c82408b-a217-4d09-b81d-1bda4c6380ef/concepts/4f1870e0-3849-43e4-b670-12e6f2d4b7a7) if you haven't already.
 
-**Step 2:** Open the code in a Jupyter Notebook
 
-You will complete the project code in a Jupyter notebook.  If you are unfamiliar with Jupyter Notebooks, check out [Udacity's free course on Anaconda and Jupyter Notebooks](https://classroom.udacity.com/courses/ud1111) to get started.
+<img src="Step1.png" width="480" alt="Step1" />
 
-Jupyter is an Ipython notebook where you can run blocks of code and see results interactively.  All the code for this project is contained in a Jupyter notebook. To start Jupyter in your browser, use terminal to navigate to your project directory and then run the following command at the terminal prompt (be sure you've activated your Python 3 carnd-term1 environment as described in the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) installation instructions!):
+**Step 2**: Smoothen Edges with Gaussian Blur
 
-`> jupyter notebook`
+We use Gaussian Blur to smoothen the edges in the Gray scaled images from the previous step. In the OpenCV function, the more the kernel size we choose, the more the blurring happens. For our purposes, we choose a kernel size of 5
 
-A browser window will appear showing the contents of the current directory.  Click on the file called "P1.ipynb".  Another browser window will appear displaying the notebook.  Follow the instructions in the notebook to complete the project.  
+<img src="Step2.png" width="480" alt="Step2" />
 
-**Step 3:** Complete the project and submit both the Ipython notebook and the project writeup
+**Step 3**: Apply Canny Edge Detector
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+We apply a Canny Edge detector on the smoothened images. For a Canny edge detector, we have an OpenCV function for Canny Edge detection , where we see that larger the threshold , the less the noise in the blurred images. We choose lower threshold = 150 and higher threshold = 250 
 
+<img src="Step3.png" width="480" alt="Step3" />
+
+**Step 4**: Use Region Of Interest and discard all lines outside this region
+
+In this step, we get Vertices that help define the contours of a polygon. This polygon would encapsulate all the lines that are of interest to us, discarding all noise that we are not interested in
+
+We then use the cv2.fillPoly and cv2.polylines , which are part of the region_of_interest for region selections. 
+
+**Step 5**: Perform a Hough Transform to find lanes within our region of interest and trace them in red
+
+The hough transform, for which I used the provided hough_lines(), is used to draw the detected lines over the original images using the draw_lines()
+
+#### How I modified draw_lines()?
+
+The draw_lines() was actually left unchanged, but I created the average_lines() function, that was used to do the following
+
+**a**: The output of the pre-modification draw_lines() is the below image. We can see that there is no uniform line, there is a double line on the right most lane. 
+
+![Step5_Before][Before_Modification.png]
+
+<img src="Before_Modification.png" width="480" alt="Before Modification" />
+
+**b**: We need to reduce the line information from the hough transform to two lines. For this, we calculate the slopes of the lines output by the hough transform
+
+**c**: We then compare the slopes of the lines, group them by positive and negative slope values. In this case, positive will be right lane, negative will be our left lane. 
+
+**d**: Then we average out both the points values and extrapolate the values on to the top of our region of interest. This gives us two seperate lines. 
+
+
+**Step 6**: Using hough lines from step 5 and draw lines on original image
+
+We can then use the included weighted_img() function to create a solid and transparent line, that runs through the length of the visible lanes
+
+![Step6][Step6.png]
+
+<img src="Step6.png" width="480" alt="Step6" />
+
+### 2. Identify potential shortcomings with your current pipeline
+
+**1**: One of the biggest problems this might face is the fact that , if there are curved lanes in the frame, this might fail. 
+**2**: This does not take into account, frame information from the previous frame. At some point in time, we will need information to understand changes in road design. This program is not currently able to do that. 
+
+
+### 3. Suggest possible improvements to your pipeline
+
+A possible suggestion would be to use information from previous frames. Like Slope information, and run it though a RNN or some other algorithm that is better able to predict the next frame. This should make our program more robust at finding lanes and adapting to lane changes. 
