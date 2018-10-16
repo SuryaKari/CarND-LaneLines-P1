@@ -62,7 +62,6 @@ The draw_lines() was actually left unchanged, but I created the average_lines() 
 
 **a**: The output of the pre-modification draw_lines() is the below image. We can see that there is no uniform line, there is a double line on the right most lane. 
 
-![Step5_Before][Before_Modification.png]
 
 <img src="Before_Modification.png" width="480" alt="Before Modification" />
 
